@@ -19,12 +19,12 @@ fn main() -> io::Result<()> {
     let path = Path::new(&args[1]);
     let file = File::open(&path)?;
     let reader = io::BufReader::new(file);
-    let re = Regex::new(r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$").unwrap();
-
+    let re_cidr = Regex::new(r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$").unwrap();
+    let re_ip = Regex::new(r"^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$").unwrap();
     for line in reader.lines() {
         match line {
             Ok(content) => {
-                if re.is_match(&content) {
+                if re_cidr.is_match(&content) {
                     match cidr_to_ips(&content) {
                         Ok(ips) => {
                             for ip in ips.iter() {
@@ -33,6 +33,8 @@ fn main() -> io::Result<()> {
                         }
                         Err(_) => eprintln!("Error parsing {}", content),
                     };
+                }else if re_ip.is_match(&content){
+                    println!("{}", content);
                 }
             }
             Err(e) => println!("Error reading line: {}", e),
